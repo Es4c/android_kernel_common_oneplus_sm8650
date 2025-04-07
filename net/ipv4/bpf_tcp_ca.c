@@ -264,7 +264,86 @@ static void bpf_tcp_ca_unreg(void *kdata)
 	tcp_unregister_congestion_control(kdata);
 }
 
-struct bpf_struct_ops bpf_tcp_congestion_ops = {
+static int bpf_tcp_ca_update(void *kdata, void *old_kdata, struct bpf_link *link)
+{
+	return tcp_update_congestion_control(kdata, old_kdata);
+}
+
+static int bpf_tcp_ca_validate(void *kdata)
+{
+	return tcp_validate_congestion_control(kdata);
+}
+
+static u32 bpf_tcp_ca_ssthresh(struct sock *sk)
+{
+	return 0;
+}
+
+static void bpf_tcp_ca_cong_avoid(struct sock *sk, u32 ack, u32 acked)
+{
+}
+
+static void bpf_tcp_ca_set_state(struct sock *sk, u8 new_state)
+{
+}
+
+static void bpf_tcp_ca_cwnd_event(struct sock *sk, enum tcp_ca_event ev)
+{
+}
+
+static void bpf_tcp_ca_in_ack_event(struct sock *sk, u32 flags)
+{
+}
+
+static void bpf_tcp_ca_pkts_acked(struct sock *sk, const struct ack_sample *sample)
+{
+}
+
+static u32 bpf_tcp_ca_tso_segs(struct sock *sk, unsigned int mss_now)
+{
+	return 0;
+}
+
+static void bpf_tcp_ca_cong_control(struct sock *sk, u32 ack, int flag,
+				    const struct rate_sample *rs)
+{
+}
+
+static u32 bpf_tcp_ca_undo_cwnd(struct sock *sk)
+{
+	return 0;
+}
+
+static u32 bpf_tcp_ca_sndbuf_expand(struct sock *sk)
+{
+	return 0;
+}
+
+static void __bpf_tcp_ca_init(struct sock *sk)
+{
+}
+
+static void __bpf_tcp_ca_release(struct sock *sk)
+{
+}
+
+static struct tcp_congestion_ops __bpf_ops_tcp_congestion_ops = {
+	.ssthresh = bpf_tcp_ca_ssthresh,
+	.cong_avoid = bpf_tcp_ca_cong_avoid,
+	.set_state = bpf_tcp_ca_set_state,
+	.cwnd_event = bpf_tcp_ca_cwnd_event,
+	.in_ack_event = bpf_tcp_ca_in_ack_event,
+	.pkts_acked = bpf_tcp_ca_pkts_acked,
+	.tso_segs = bpf_tcp_ca_tso_segs,
+	.cong_control = bpf_tcp_ca_cong_control,
+	.undo_cwnd = bpf_tcp_ca_undo_cwnd,
+	.sndbuf_expand = bpf_tcp_ca_sndbuf_expand,
+
+	.init = __bpf_tcp_ca_init,
+	.release = __bpf_tcp_ca_release,
+};
+
+static struct bpf_struct_ops bpf_tcp_congestion_ops = {
 	.verifier_ops = &bpf_tcp_ca_verifier_ops,
 	.reg = bpf_tcp_ca_reg,
 	.unreg = bpf_tcp_ca_unreg,
