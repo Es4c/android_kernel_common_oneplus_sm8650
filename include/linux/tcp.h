@@ -190,7 +190,7 @@ struct tcp_sock {
 	u16	advmss;		/* Advertised MSS			*/
 	u16	urg_data;	/* Saved octet of OOB data and control flags */
 	u32	lost;		/* Total data packets lost incl. rexmits */
-	struct  minmax rtt_min;
+	struct minmax rtt_min;
 	/* OOO segments go in this rbtree. Socket lock must be held. */
 	struct rb_root	out_of_order_queue;
 #if defined(CONFIG_TLS_DEVICE)
@@ -222,7 +222,7 @@ struct tcp_sock {
 	u32	rtt_seq;	/* sequence number to update rttvar	*/
 	u64	tcp_wstamp_ns;	/* departure time for next sent data packet */
 	struct list_head tsorted_sent_queue; /* time-sorted sent but un-SACKed skbs */
-	struct sk_buff *highest_sack;   /* skb just after the highest
+	struct sk_buff *highest_sack;   /* skb just after the highest
 					 * skb with SACKed bit set
 					 * (validity guaranteed only if
 					 * sacked_out > 0)
@@ -250,16 +250,16 @@ struct tcp_sock {
 	u32	app_limited;	/* limited until "delivered" reaches this val */
 	u32	rcv_wnd;	/* Current receiver window		*/
 /*
- *      Options received (usually on last packet, some only on SYN packets).
+ *	Options received (usually on last packet, some only on SYN packets).
  */
 	struct tcp_options_received rx_opt;
-	u8	nonagle     : 4,/* Disable Nagle algorithm?             */
-		rate_app_limited:1,  /* rate_{delivered,interval_us} limited? */
+	u8	nonagle     : 4,/* Disable Nagle algorithm?             */
+		rate_app_limited:1,  /* rate_{delivered,interval_us} limited? */
 		tlp_orig_data_app_limited:1; /* app-limited before TLP rtx? */
-		thin_lto    : 1,/* Use linear timeouts for thin streams */
-		recvmsg_inq : 1,/* Indicate # of bytes in queue upon recvmsg */
-		repair      : 1,
-		frto        : 1;/* F-RTO (RFC5682) activated in CA_Loss */
+		
+		repair      : 1,
+		frto        : 1;/* F-RTO (RFC5682) activated in CA_Loss */
+	u8	thin_lto    : 1,/* Use linear timeouts for thin streams */
 	__cacheline_group_end(tcp_sock_write_txrx);
 
 /*
@@ -277,7 +277,7 @@ struct tcp_sock {
 	u32	data_segs_in;	/* RFC4898 tcpEStatsPerfDataSegsIn
 				 * total number of data segments in.
 				 */
- 	u32	rcv_nxt;	/* What we want to receive next 	*/
+	u32	rcv_nxt;	/* What we want to receive next 	*/
 	u32	rcv_wup;	/* rcv_nxt on last window update sent	*/
 	u64	bytes_acked;	/* RFC4898 tcpEStatsAppHCThruOctetsAcked
 				 * sum(delta(snd_una)), or how many bytes
@@ -286,7 +286,7 @@ struct tcp_sock {
 	u32	dsack_dups;	/* RFC4898 tcpEStatsStackDSACKDups
 				 * total number of DSACK blocks received
 				 */
-	u32	last_oow_ack_time;  /* timestamp of last out-of-window ACK */
+	u32	last_oow_ack_time;  /* timestamp of last out-of-window ACK */
 	u32	compressed_ack_rcv_nxt;
 
 	u32	tsoffset;	/* timestamp offset */
@@ -302,14 +302,14 @@ struct tcp_sock {
 	/* Information of the most recently (s)acked skb */
 	struct tcp_rack {
 		u64 mstamp; /* (Re)sent time of the skb */
-		u32 rtt_us;  /* Associated RTT */
+		u32 rtt_us;  /* Associated RTT */
 		u32 end_seq; /* Ending TCP sequence of the skb */
 		u32 last_delivered; /* tp->delivered at last reo_wnd adj */
-		u8 reo_wnd_steps;   /* Allowed reordering window */
+		u8 reo_wnd_steps;   /* Allowed reordering window */
 #define TCP_RACK_RECOVERY_THRESH 16
 		u8 reo_wnd_persist:5, /* No. of recovery since last adj */
-		   dsack_seen:1, /* Whether DSACK seen after last adj */
-		   advanced:1;	 /* mstamp advanced since last lost marking */
+		   dsack_seen:1, /* Whether DSACK seen after last adj */
+		   advanced:1;	 /* mstamp advanced since last lost marking */
 	} rack;
 	u8	compressed_ack;
 	u8	dup_ack_counter:2,
@@ -317,7 +317,7 @@ struct tcp_sock {
 		unused:5;
 	u8	chrono_type:2,	/* current chronograph type */		fastopen_connect:1, /* FASTOPEN_CONNECT sockopt */
 		fastopen_no_cookie:1, /* Allow send/recv SYN+data without a cookie */
-		is_sack_reneg:1,    /* in recovery from loss with SACK reneg? */
+		is_sack_reneg:1,    /* in recovery from loss with SACK reneg? */
 		fastopen_client_fail:2; /* reason why fastopen failed */
 	u8	repair_queue;
 	u8	save_syn:2,	/* Save headers of SYN packet */
@@ -327,43 +327,21 @@ struct tcp_sock {
 		syn_fastopen_ch:1, /* Active TFO re-enabling probe */
 		syn_data_acked:1,/* data in SYN is acked by SYN-ACK */
 		is_cwnd_limited:1;/* forward progress limited by snd_cwnd? */
-	u32	tlp_high_seq;	/* snd_nxt at the time of TLP */
 
 	u32	tcp_tx_delay;	/* delay (in usec) added to TX packets */
-	u64	tcp_wstamp_ns;	/* departure time for next sent data packet */
-	u64	tcp_clock_cache; /* cache last tcp_clock_ns() (see tcp_mstamp_refresh()) */
 
 /* RTT measurement */
-	u64	tcp_mstamp;	/* most recent packet received/sent */
-	u32	srtt_us;	/* smoothed round trip time << 3 in usecs */
-	u32	mdev_us;	/* medium deviation			*/
 	u32	mdev_max_us;	/* maximal mdev for the last rtt period	*/
-	u32	rttvar_us;	/* smoothed mdev_max			*/
-	u32	rtt_seq;	/* sequence number to update rttvar	*/
-	struct  minmax rtt_min;
-
-	u32	packets_out;	/* Packets which are "in flight"	*/
-	u32	retrans_out;	/* Retransmitted packets out		*/
-	u32	max_packets_out;  /* max packets_out in last window */
-	u32	cwnd_usage_seq;  /* right edge of cwnd usage tracking flight */
-
-	u16	urg_data;	/* Saved octet of OOB data and control flags */
-	u8	ecn_flags;	/* ECN status bits.			*/
+	u32	max_packets_out;  /* max packets_out in last window */
+	u32	cwnd_usage_seq;  /* right edge of cwnd usage tracking flight */
 	u8	keepalive_probes; /* num of allowed keep alive probes	*/
 	u32	reordering;	/* Packet reordering metric.		*/
 	u32	reord_seen;	/* number of data packet reordering events */
-	u32	snd_up;		/* Urgent pointer		*/
-
-/*
- *      Options received (usually on last packet, some only on SYN packets).
- */
-	struct tcp_options_received rx_opt;
 
 /*
  *	Slow start and congestion control (see also Nagle, and Karn & Partridge)
  */
- 	u32	snd_ssthresh;	/* Slow start size threshold		*/
- 	u32	snd_cwnd;	/* Sending congestion window		*/
+	u32	snd_cwnd;	/* Sending congestion window		*/
 	u32	snd_cwnd_cnt;	/* Linear increase counter		*/
 	u32	snd_cwnd_clamp; /* Do not allow snd_cwnd to grow above this */
 	u32	snd_cwnd_used;
@@ -372,19 +350,12 @@ struct tcp_sock {
 	u32	prr_delivered;	/* Number of newly delivered packets to
 				 * receiver in Recovery. */
 	u32	prr_out;	/* Total number of pkts sent during Recovery. */
-	u32	delivered;	/* Total data packets delivered incl. rexmits */
-	u32	delivered_ce;	/* Like the above but only ECE marked packets */
-	u32	lost;		/* Total data packets lost incl. rexmits */
-	u32	app_limited;	/* limited until "delivered" reaches this val */
-	u64	first_tx_mstamp;  /* start of window send phase */
+	u64	first_tx_mstamp;  /* start of window send phase */
 	u64	delivered_mstamp; /* time we reached "delivered" */
-	u32	rate_delivered;    /* saved rate sample: packets delivered */
-	u32	rate_interval_us;  /* saved rate sample: time elapsed */
+	u32	rate_delivered;    /* saved rate sample: packets delivered */
+	u32	rate_interval_us;  /* saved rate sample: time elapsed */
 
- 	u32	rcv_wnd;	/* Current receiver window		*/
-	u32	write_seq;	/* Tail(+1) of data held in tcp send buffer */
 	u32	notsent_lowat;	/* TCP_NOTSENT_LOWAT */
-	u32	pushed_seq;	/* Last pushed seq, required to talk to windows */
 	u32	lost_out;	/* Lost packets			*/
 	u32	sacked_out;	/* SACK'd packets			*/
 
@@ -405,13 +376,7 @@ struct tcp_sock {
 
 	struct tcp_sack_block recv_sack_cache[4];
 
-	struct sk_buff *highest_sack;   /* skb just after the highest
-					 * skb with SACKed bit set
-					 * (validity guaranteed only if
-					 * sacked_out > 0)
-					 */
-
-	int     lost_cnt_hint;
+	int     lost_cnt_hint;
 
 	u32	prior_ssthresh; /* ssthresh saved at recovery start	*/
 	u32	high_seq;	/* snd_nxt at onset of congestion	*/
@@ -427,23 +392,23 @@ struct tcp_sock {
 	u32	total_retrans;	/* Total retransmits for entire connection */
 
 	u32	urg_seq;	/* Seq of received urgent pointer */
-	unsigned int		keepalive_time;	  /* time before keep alive takes place */
-	unsigned int		keepalive_intvl;  /* time interval between keep alive probes */
+	unsigned int		keepalive_time;	  /* time before keep alive takes place */
+	unsigned int		keepalive_intvl;  /* time interval between keep alive probes */
 
 	int			linger2;
 
 
 /* Sock_ops bpf program related variables */
 #ifdef CONFIG_BPF
-	u8	bpf_sock_ops_cb_flags;  /* Control calling BPF programs
+	u8	bpf_sock_ops_cb_flags;  /* Control calling BPF programs
 					 * values defined in uapi/linux/tcp.h
 					 */
 	u8	bpf_chg_cc_inprogress:1; /* In the middle of
-					  * bpf_setsockopt(TCP_CONGESTION),
-					  * it is to avoid the bpf_tcp_cc->init()
-					  * to recur itself by calling
-					  * bpf_setsockopt(TCP_CONGESTION, "itself").
-					  */
+					  * bpf_setsockopt(TCP_CONGESTION),
+					  * it is to avoid the bpf_tcp_cc->init()
+					  * to recur itself by calling
+					  * bpf_setsockopt(TCP_CONGESTION, "itself").
+					  */
 #define BPF_SOCK_OPS_TEST_FLAG(TP, ARG) (TP->bpf_sock_ops_cb_flags & ARG)
 #else
 #define BPF_SOCK_OPS_TEST_FLAG(TP, ARG) 0
@@ -470,12 +435,12 @@ struct tcp_sock {
 
 /* TCP-specific MTU probe information. */
 	struct {
-		u32		  probe_seq_start;
-		u32		  probe_seq_end;
+		u32		  probe_seq_start;
+		u32		  probe_seq_end;
 	} mtu_probe;
 	u32	mtu_info; /* We received an ICMP_FRAG_NEEDED / ICMPV6_PKT_TOOBIG
-			   * while socket was owned by user.
-			   */
+			   * while socket was owned by user.
+			   */
 #if IS_ENABLED(CONFIG_MPTCP)
 	bool	is_mptcp;
 #endif
@@ -502,6 +467,7 @@ struct tcp_sock {
 
 	ANDROID_KABI_RESERVE(1);
 };
+
 
 enum tsq_enum {
 	TSQ_THROTTLED,
