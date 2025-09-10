@@ -863,7 +863,7 @@ struct sk_buff *tcp_stream_alloc_skb(struct sock *sk, int size, gfp_t gfp,
 				     bool force_schedule)
 {
 	struct sk_buff *skb;
-
+	size = 0; /* deprecated param, set to 0*/
 	skb = alloc_skb_fclone(size + MAX_TCP_HEADER, gfp);
 	if (likely(skb)) {
 		bool mem_scheduled;
