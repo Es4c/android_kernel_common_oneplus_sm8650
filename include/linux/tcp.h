@@ -239,7 +239,6 @@ struct tcp_sock {
 	__be32	pred_flags;
 	u64	tcp_clock_cache; /* cache last tcp_clock_ns() (see tcp_mstamp_refresh()) */
 	u64	tcp_mstamp;	/* most recent packet received/sent */
-	u32	rcv_nxt;	/* What we want to receive next		*/
 	u32	snd_nxt;	/* Next sequence we send		*/
 	u32	snd_una;	/* First byte we want an ack for	*/
 	u32	window_clamp;	/* Maximal window to advertise		*/
@@ -257,6 +256,10 @@ struct tcp_sock {
 	u8	nonagle     : 4,/* Disable Nagle algorithm?             */
 		rate_app_limited:1,  /* rate_{delivered,interval_us} limited? */
 		tlp_orig_data_app_limited:1; /* app-limited before TLP rtx? */
+		thin_lto    : 1,/* Use linear timeouts for thin streams */
+		recvmsg_inq : 1,/* Indicate # of bytes in queue upon recvmsg */
+		repair      : 1,
+		frto        : 1;/* F-RTO (RFC5682) activated in CA_Loss */
 	__cacheline_group_end(tcp_sock_write_txrx);
 
 /*
@@ -274,6 +277,7 @@ struct tcp_sock {
 	u32	data_segs_in;	/* RFC4898 tcpEStatsPerfDataSegsIn
 				 * total number of data segments in.
 				 */
+ 	u32	rcv_nxt;	/* What we want to receive next 	*/
 	u32	rcv_wup;	/* rcv_nxt on last window update sent	*/
 	u64	bytes_acked;	/* RFC4898 tcpEStatsAppHCThruOctetsAcked
 				 * sum(delta(snd_una)), or how many bytes
@@ -282,7 +286,6 @@ struct tcp_sock {
 	u32	dsack_dups;	/* RFC4898 tcpEStatsStackDSACKDups
 				 * total number of DSACK blocks received
 				 */
-
 	u32	last_oow_ack_time;  /* timestamp of last out-of-window ACK */
 	u32	compressed_ack_rcv_nxt;
 
@@ -312,14 +315,10 @@ struct tcp_sock {
 	u8	dup_ack_counter:2,
 		tlp_retrans:1,	/* TLP is a retransmission */
 		unused:5;
-	u8	chrono_type:2,	/* current chronograph type */
-		fastopen_connect:1, /* FASTOPEN_CONNECT sockopt */
+	u8	chrono_type:2,	/* current chronograph type */		fastopen_connect:1, /* FASTOPEN_CONNECT sockopt */
 		fastopen_no_cookie:1, /* Allow send/recv SYN+data without a cookie */
 		is_sack_reneg:1,    /* in recovery from loss with SACK reneg? */
 		fastopen_client_fail:2; /* reason why fastopen failed */
-		thin_lto    : 1,/* Use linear timeouts for thin streams */
-		repair      : 1,
-		frto        : 1;/* F-RTO (RFC5682) activated in CA_Loss */
 	u8	repair_queue;
 	u8	save_syn:2,	/* Save headers of SYN packet */
 		syn_data:1,	/* SYN includes data */
