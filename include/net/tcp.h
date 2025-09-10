@@ -376,9 +376,6 @@ static inline void tcp_dec_quickack_mode(struct sock *sk)
 }
 
 #define	TCP_ECN_OK		1
-#define	TCP_ECN_QUEUE_CWR	2
-#define	TCP_ECN_DEMAND_CWR	4
-#define	TCP_ECN_SEEN		8
 #define	TCP_ECN_MODE_RFC3168	BIT(0)
 #define	TCP_ECN_QUEUE_CWR	BIT(1)
 #define	TCP_ECN_DEMAND_CWR	BIT(2)
@@ -885,6 +882,7 @@ static inline u32 tcp_stamp_us_delta(u64 t1, u64 t0)
 static inline u32 tcp_skb_timestamp(const struct sk_buff *skb)
 {
 	return tcp_ns_to_ts(skb->skb_mstamp_ns);
+}
 static inline u32 tcp_stamp32_us_delta(u32 t1, u32 t0)
 {
 	return max_t(s32, t1 - t0, 0);
