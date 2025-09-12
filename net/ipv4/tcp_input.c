@@ -2129,11 +2129,6 @@ static inline void tcp_init_undo(struct tcp_sock *tp)
 		tp->undo_retrans = -1;
 }
 
-static bool tcp_is_rack(const struct sock *sk)
-{
-	return READ_ONCE(sock_net(sk)->ipv4.sysctl_tcp_recovery) &
-		TCP_RACK_LOSS_DETECTION;
-}
 
 /* If we detect SACK reneging, forget all SACK information
  * and reset tags completely, otherwise preserve SACKs. If receiver
@@ -2160,8 +2155,7 @@ static void tcp_timeout_mark_lost(struct sock *sk)
 	skb_rbtree_walk_from(skb) {
 		if (is_reneg)
 			TCP_SKB_CB(skb)->sacked &= ~TCPCB_SACKED_ACKED;
-		else if (tcp_is_rack(sk) && skb != head &&
-			 tcp_rack_skb_timeout(tp, skb, 0) > 0)
+		else if (skb != head && tcp_rack_skb_timeout(tp, skb, 0) > 0)
 			continue; /* Don't mark recently sent ones lost yet */
 		tcp_mark_skb_lost(sk, skb);
 	}
@@ -2241,22 +2235,6 @@ static bool tcp_check_sack_reneging(struct sock *sk, int *ack_flag)
 		return true;
 	}
 	return false;
-}
-
-/* Heurestics to calculate number of duplicate ACKs. There's no dupACKs
- * counter when SACK is enabled (without SACK, sacked_out is used for
- * that purpose).
- *
- * With reordering, holes may still be in flight, so RFC3517 recovery
- * uses pure sacked_out (total number of SACKed segments) even though
- * it violates the RFC that uses duplicate ACKs, often these are equal
- * but when e.g. out-of-window ACKs or packet duplication occurs,
- * they differ. Since neither occurs due to loss, TCP should really
- * ignore them.
- */
-static inline int tcp_dupack_heuristics(const struct tcp_sock *tp)
-{
-	return tp->sacked_out + 1;
 }
 
 /* Linux NewReno/SACK/ECN state machine.
@@ -2951,17 +2929,8 @@ static void tcp_process_loss(struct sock *sk, int flag, int num_dupack,
 	*rexmit = REXMIT_LOST;
 }
 
-static bool tcp_force_fast_retransmit(struct sock *sk)
-{
-	struct tcp_sock *tp = tcp_sk(sk);
-
-	return after(tcp_highest_sack_seq(tp),
-		     tp->snd_una + tp->reordering * tp->mss_cache);
-}
-
 /* Undo during fast recovery after partial ACK. */
-static bool tcp_try_undo_partial(struct sock *sk, u32 prior_snd_una,
-				 bool *do_lost)
+static bool tcp_try_undo_partial(struct sock *sk, u32 prior_snd_una)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 
@@ -2986,10 +2955,7 @@ static bool tcp_try_undo_partial(struct sock *sk, u32 prior_snd_una,
 		tcp_undo_cwnd_reduction(sk, true);
 		NET_INC_STATS(sock_net(sk), LINUX_MIB_TCPPARTIALUNDO);
 		tcp_try_keep_open(sk);
-	} else {
-		/* Partial ACK arrived. Force fast retransmit. */
-		*do_lost = tcp_force_fast_retransmit(sk);
-	}
+	} 
 	return false;
 }
 
@@ -3002,7 +2968,7 @@ static void tcp_identify_packet_loss(struct sock *sk, int *ack_flag)
 
 	if (unlikely(tcp_is_reno(tp))) {
 		tcp_newreno_mark_lost(sk, *ack_flag & FLAG_SND_UNA_ADVANCED);
-	} else if (tcp_is_rack(sk)) {
+	} else {
 		u32 prior_retrans = tp->retrans_out;
 
 		if (tcp_rack_mark_lost(sk))
@@ -3029,7 +2995,7 @@ static void tcp_fastretrans_alert(struct sock *sk, const u32 prior_snd_una,
 {
 	struct inet_connection_sock *icsk = inet_csk(sk);
 	struct tcp_sock *tp = tcp_sk(sk);
-	int fast_rexmit = 0, flag = *ack_flag;
+	int flag = *ack_flag;
 	bool ece_ack = flag & FLAG_ECE;
 	bool do_lost = num_dupack || ((flag & FLAG_DATA_SACKED) &&
 				      tcp_force_fast_retransmit(sk));
@@ -3081,7 +3047,7 @@ static void tcp_fastretrans_alert(struct sock *sk, const u32 prior_snd_una,
 		if (!(flag & FLAG_SND_UNA_ADVANCED)) {
 			if (tcp_is_reno(tp))
 				tcp_add_reno_sack(sk, num_dupack, ece_ack);
-		} else if (tcp_try_undo_partial(sk, prior_snd_una, &do_lost))
+		} else if (tcp_try_undo_partial(sk, prior_snd_una))
 			return;
 
 		if (tcp_try_undo_dsack(sk))
@@ -3134,11 +3100,8 @@ static void tcp_fastretrans_alert(struct sock *sk, const u32 prior_snd_una,
 
 		/* Otherwise enter Recovery state */
 		tcp_enter_recovery(sk, ece_ack);
-		fast_rexmit = 1;
 	}
 
-	if (!tcp_is_rack(sk) && do_lost)
-		tcp_update_scoreboard(sk, fast_rexmit);
 	*rexmit = REXMIT_LOST;
 }
 
