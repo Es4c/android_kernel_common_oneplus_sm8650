@@ -12,7 +12,7 @@
 #include <net/bpf_sk_storage.h>
 
 /* "extern" is to avoid sparse warning.  It is only used in bpf_struct_ops.c. */
-extern struct bpf_struct_ops bpf_tcp_congestion_ops;
+static struct bpf_struct_ops bpf_tcp_congestion_ops;
 
 static u32 unsupported_ops[] = {
 	offsetof(struct tcp_congestion_ops, get_info),
@@ -304,7 +304,7 @@ static u32 bpf_tcp_ca_tso_segs(struct sock *sk, unsigned int mss_now)
 	return 0;
 }
 
-static void bpf_tcp_ca_cong_control(struct sock *sk, u32 ack, int flag,
+static void bpf_tcp_ca_cong_control(struct sock *sk,
 				    const struct rate_sample *rs)
 {
 }
