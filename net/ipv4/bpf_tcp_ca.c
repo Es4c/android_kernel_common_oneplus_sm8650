@@ -11,9 +11,6 @@
 #include <net/tcp.h>
 #include <net/bpf_sk_storage.h>
 
-/* "extern" is to avoid sparse warning.  It is only used in bpf_struct_ops.c. */
-static struct bpf_struct_ops bpf_tcp_congestion_ops;
-
 static u32 unsupported_ops[] = {
 	offsetof(struct tcp_congestion_ops, get_info),
 };
@@ -343,7 +340,10 @@ static struct tcp_congestion_ops __bpf_ops_tcp_congestion_ops = {
 	.release = __bpf_tcp_ca_release,
 };
 
-static struct bpf_struct_ops bpf_tcp_congestion_ops = {
+/* "extern" is to avoid sparse warning.  It is only used in bpf_struct_ops.c. */
+static struct bpf_struct_ops bpf_tcp_congestion_ops;
+
+struct bpf_struct_ops bpf_tcp_congestion_ops = {
 	.verifier_ops = &bpf_tcp_ca_verifier_ops,
 	.reg = bpf_tcp_ca_reg,
 	.unreg = bpf_tcp_ca_unreg,
@@ -352,9 +352,3 @@ static struct bpf_struct_ops bpf_tcp_congestion_ops = {
 	.init = bpf_tcp_ca_init,
 	.name = "tcp_congestion_ops",
 };
-
-static int __init bpf_tcp_ca_kfunc_init(void)
-{
-	return register_btf_kfunc_id_set(BPF_PROG_TYPE_STRUCT_OPS, &bpf_tcp_ca_kfunc_set);
-}
-late_initcall(bpf_tcp_ca_kfunc_init);
