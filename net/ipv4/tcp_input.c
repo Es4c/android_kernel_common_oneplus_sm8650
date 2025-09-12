@@ -2359,16 +2359,8 @@ static inline int tcp_dupack_heuristics(const struct tcp_sock *tp)
 static bool tcp_time_to_recover(struct sock *sk, int flag)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
-
-	/* Trick#1: The loss is proven. */
-	if (tp->lost_out)
-		return true;
-
-	/* Not-A-Trick#2 : Classic rule... */
-	if (!tcp_is_rack(sk) && tcp_dupack_heuristics(tp) > tp->reordering)
-		return true;
-
-	return false;
+	/* Has loss detection marked at least one packet lost? */
+	return tp->lost_out != 0;
 }
 
 /* Detect loss in event "A" above by marking head of queue up as lost.
