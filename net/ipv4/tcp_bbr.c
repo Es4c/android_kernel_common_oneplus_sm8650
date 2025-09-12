@@ -507,7 +507,7 @@ static u32 bbr_tso_segs_generic(struct sock *sk, unsigned int mss_now,
 }
 
 /* Custom tcp_tso_autosize() for BBR, used at transmit time to cap skb size. */
-__bpf_kfunc static u32 bbr_tso_segs(struct sock *sk, unsigned int mss_now)
+static u32 bbr_tso_segs(struct sock *sk, unsigned int mss_now)
 {
 	return bbr_tso_segs_generic(sk, mss_now, sk->sk_gso_max_size);
 }
@@ -974,7 +974,7 @@ static void bbr_update_gains(struct sock *sk)
 	}
 }
 
-__bpf_kfunc static u32 bbr_sndbuf_expand(struct sock *sk)
+static u32 bbr_sndbuf_expand(struct sock *sk)
 {
 	/* Provision 3 * cwnd since BBR may slow-start even during recovery. */
 	return 3;
@@ -2036,7 +2036,7 @@ static bool bbr_run_fast_path(struct sock *sk, bool *update_model,
 	return false;
 }
 
-__bpf_kfunc static void bbr_main(struct sock *sk, u32 ack, int flag,
+static void bbr_main(struct sock *sk, u32 ack, int flag,
 				 const struct rate_sample *rs)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
@@ -2176,7 +2176,7 @@ static void bbr_note_loss(struct sock *sk)
 }
 
 /* Core TCP stack informs us that the given skb was just marked lost. */
-__bpf_kfunc static void bbr_skb_marked_lost(struct sock *sk,
+static void bbr_skb_marked_lost(struct sock *sk,
 					    const struct sk_buff *skb)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
@@ -2225,7 +2225,7 @@ static void bbr_run_loss_probe_recovery(struct sock *sk)
 }
 
 /* Revert short-term model if current loss recovery event was spurious. */
-__bpf_kfunc static u32 bbr_undo_cwnd(struct sock *sk)
+static u32 bbr_undo_cwnd(struct sock *sk)
 {
 	struct bbr *bbr = inet_csk_ca(sk);
 
@@ -2241,7 +2241,7 @@ __bpf_kfunc static u32 bbr_undo_cwnd(struct sock *sk)
 }
 
 /* Entering loss recovery, so save state for when we undo recovery. */
-__bpf_kfunc static u32 bbr_ssthresh(struct sock *sk)
+static u32 bbr_ssthresh(struct sock *sk)
 {
 	struct bbr *bbr = inet_csk_ca(sk);
 
