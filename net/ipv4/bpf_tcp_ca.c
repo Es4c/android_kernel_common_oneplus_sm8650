@@ -324,24 +324,8 @@ static void __bpf_tcp_ca_release(struct sock *sk)
 {
 }
 
-static struct tcp_congestion_ops __bpf_ops_tcp_congestion_ops = {
-	.ssthresh = bpf_tcp_ca_ssthresh,
-	.cong_avoid = bpf_tcp_ca_cong_avoid,
-	.set_state = bpf_tcp_ca_set_state,
-	.cwnd_event = bpf_tcp_ca_cwnd_event,
-	.in_ack_event = bpf_tcp_ca_in_ack_event,
-	.pkts_acked = bpf_tcp_ca_pkts_acked,
-	.tso_segs = bpf_tcp_ca_tso_segs,
-	.cong_control = bpf_tcp_ca_cong_control,
-	.undo_cwnd = bpf_tcp_ca_undo_cwnd,
-	.sndbuf_expand = bpf_tcp_ca_sndbuf_expand,
-
-	.init = __bpf_tcp_ca_init,
-	.release = __bpf_tcp_ca_release,
-};
-
 /* "extern" is to avoid sparse warning.  It is only used in bpf_struct_ops.c. */
-static struct bpf_struct_ops bpf_tcp_congestion_ops;
+extern struct bpf_struct_ops bpf_tcp_congestion_ops;
 
 struct bpf_struct_ops bpf_tcp_congestion_ops = {
 	.verifier_ops = &bpf_tcp_ca_verifier_ops,
