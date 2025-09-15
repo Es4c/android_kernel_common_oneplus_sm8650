@@ -547,9 +547,6 @@ struct vm_area_struct {
 #ifdef CONFIG_NUMA
 	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
 #endif
-#ifdef CONFIG_SECURITY_BASEBAND_GUARD
-	u64 android_kabi_reserved2;
-#endif
 	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
 
 	ANDROID_KABI_RESERVE(1);
