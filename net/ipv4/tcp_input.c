@@ -2997,9 +2997,7 @@ static void tcp_fastretrans_alert(struct sock *sk, const u32 prior_snd_una,
 	struct tcp_sock *tp = tcp_sk(sk);
 	int flag = *ack_flag;
 	bool ece_ack = flag & FLAG_ECE;
-	bool do_lost = num_dupack || ((flag & FLAG_DATA_SACKED) &&
-				      tcp_force_fast_retransmit(sk));
-
+	
 	if (!tp->packets_out && tp->sacked_out)
 		tp->sacked_out = 0;
 
