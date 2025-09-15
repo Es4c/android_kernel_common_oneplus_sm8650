@@ -4534,7 +4534,7 @@ extern bool chp_anon_always;
 static inline bool vma_is_chp_anonymous(struct vm_area_struct *vma)
 {
 	return unlikely(chp_anon_always) ||
-		vma->ANDROID_KABI_RESERVE(2) == THP_SWAP_PRIO_MAGIC;
+		vma->android_kabi_reserved2 == THP_SWAP_PRIO_MAGIC;
 }
 
 static inline int chp_swapin_nr_pages(struct page *page)
